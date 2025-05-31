@@ -6,12 +6,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	_ "github.com/noman.nooruddin/chat-backend/docs"
+	gsfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 var hub *Hub
+
+// @title Go Chat Backend API
+// @version 1.0
+// @description Real-time chat backend with JWT, WebSocket, and PostgreSQL
+// @host localhost:8080
+// @BasePath /
 
 func initDB() {
 	dsn := "host=" + os.Getenv("DB_HOST") +
@@ -71,6 +80,11 @@ func main() {
 		auth.GET("/messages/:userId", getMessages)
 		auth.GET("/users", getUsers)
 	}
+
+	// Serve Swagger docs
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(gsfiles.Handler))
+	// Serve static web client
+	r.Static("/client", "./client")
 
 	// Start server
 	port := os.Getenv("PORT")

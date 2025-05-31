@@ -146,3 +146,11 @@ The API returns appropriate HTTP status codes and error messages in JSON format:
 3. Commit your changes
 4. Push to the branch
 5. Create a new Pull Request
+
+## Swagger API Documentation
+
+After starting the server, visit [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) to view and interact with the API documentation.
+
+## Web Client
+
+A simple web client is available at [http://localhost:8080/client](http://localhost:8080/client) for testing chat functionality.

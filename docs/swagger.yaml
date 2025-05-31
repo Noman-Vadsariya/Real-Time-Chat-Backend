@@ -1,0 +1,9 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: Real-time chat backend with JWT, WebSocket, and PostgreSQL
+  title: Go Chat Backend API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

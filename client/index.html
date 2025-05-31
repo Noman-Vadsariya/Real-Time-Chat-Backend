@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Go Chat Client</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+      }
+      #chat {
+        display: none;
+      }
+      #messages {
+        border: 1px solid #ccc;
+        height: 200px;
+        overflow-y: scroll;
+        margin-bottom: 1em;
+        padding: 0.5em;
+      }
+      #users {
+        margin-bottom: 1em;
+      }
+      .online {
+        color: green;
+      }
+      .offline {
+        color: gray;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Go Chat Client</h1>
+    <div id="login">
+      <h2>Login</h2>
+      <input id="username" placeholder="Username" /><br />
+      <input id="password" type="password" placeholder="Password" /><br />
+      <button onclick="login()">Login</button>
+      <div id="login-error" style="color: red"></div>
+    </div>
+    <div id="chat">
+      <h2>Welcome, <span id="me"></span></h2>
+      <div>
+        <strong>Users:</strong>
+        <select id="user-list"></select>
+      </div>
+      <div id="users"></div>
+      <div id="messages"></div>
+      <input id="msg" placeholder="Type a message..." />
+      <button onclick="sendMsg()">Send</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+    <script>
+      let token = "";
+      let ws = null;
+      let myId = null;
+      let currentChatId = null;
+
+      function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.token) {
+              token = data.token;
+              myId = data.user.id;
+              document.getElementById("me").innerText = data.user.username;
+              document.getElementById("login").style.display = "none";
+              document.getElementById("chat").style.display = "block";
+              loadUsers();
+              connectWS();
+            } else {
+              document.getElementById("login-error").innerText =
+                data.error || "Login failed";
+            }
+          });
+      }
+
+      function logout() {
+        token = "";
+        ws && ws.close();
+        document.getElementById("login").style.display = "block";
+        document.getElementById("chat").style.display = "none";
+        document.getElementById("messages").innerHTML = "";
+        document.getElementById("user-list").innerHTML = "";
+      }
+
+      function loadUsers() {
+        fetch("/users", { headers: { Authorization: "Bearer " + token } })
+          .then((r) => r.json())
+          .then((users) => {
+            const list = document.getElementById("user-list");
+            list.innerHTML = "";
+            users.forEach((u) => {
+              if (u.id !== myId) {
+                const opt = document.createElement("option");
+                opt.value = u.id;
+                opt.text = u.username + (u.online ? " (online)" : " (offline)");
+                list.appendChild(opt);
+              }
+            });
+            list.onchange = () => {
+              currentChatId = list.value;
+              loadMessages();
+            };
+            if (list.options.length > 0) {
+              list.selectedIndex = 0;
+              currentChatId = list.value;
+              loadMessages();
+            }
+          });
+      }
+
+      function loadMessages() {
+        if (!currentChatId) return;
+        fetch("/messages/" + currentChatId, {
+          headers: { Authorization: "Bearer " + token },
+        })
+          .then((r) => r.json())
+          .then((msgs) => {
+            const box = document.getElementById("messages");
+            box.innerHTML = "";
+            msgs.reverse().forEach((m) => {
+              const div = document.createElement("div");
+              div.innerText =
+                (m.sender_id === myId ? "Me" : m.sender.username) +
+                ": " +
+                m.content;
+              box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+          });
+      }
+
+      function connectWS() {
+        ws = new WebSocket("ws://" + location.host + "/ws");
+        ws.onopen = () => {
+          ws.send(JSON.stringify({ type: "auth", token }));
+        };
+        ws.onmessage = (event) => {
+          let msg = {};
+          try {
+            msg = JSON.parse(event.data);
+          } catch {}
+          if (msg.type === "user_status") {
+            loadUsers();
+          } else if (msg.type === "message") {
+            if (msg.sender_id == currentChatId || msg.sender_id == myId) {
+              loadMessages();
+            }
+          }
+        };
+        ws.onclose = () => {};
+      }
+
+      function sendMsg() {
+        const content = document.getElementById("msg").value;
+        if (!content || !currentChatId) return;
+        ws.send(
+          JSON.stringify({
+            type: "message",
+            content,
+            data: { receiver_id: Number(currentChatId) },
+          })
+        );
+        document.getElementById("msg").value = "";
+      }
+    </script>
+  </body>
+</html>
