@@ -2,63 +2,259 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Go Chat Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go Chat</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 2em;
+      .chat-container {
+        height: calc(100vh - 180px);
       }
-      #chat {
-        display: none;
+      .messages-container {
+        height: calc(100vh - 280px);
       }
-      #messages {
-        border: 1px solid #ccc;
-        height: 200px;
-        overflow-y: scroll;
-        margin-bottom: 1em;
-        padding: 0.5em;
-      }
-      #users {
-        margin-bottom: 1em;
+      .online-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
       }
       .online {
-        color: green;
+        background-color: #10b981;
       }
       .offline {
-        color: gray;
+        background-color: #9ca3af;
+      }
+      .message-bubble {
+        max-width: 70%;
+        margin: 5px;
+        padding: 10px 15px;
+        border-radius: 15px;
+      }
+      .message-sent {
+        background-color: #3b82f6;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 5px;
+      }
+      .message-received {
+        background-color: #e5e7eb;
+        color: #1f2937;
+        margin-right: auto;
+        border-bottom-left-radius: 5px;
       }
     </style>
   </head>
-  <body>
-    <h1>Go Chat Client</h1>
-    <div id="login">
-      <h2>Login</h2>
-      <input id="username" placeholder="Username" /><br />
-      <input id="password" type="password" placeholder="Password" /><br />
-      <button onclick="login()">Login</button>
-      <div id="login-error" style="color: red"></div>
-    </div>
-    <div id="chat">
-      <h2>Welcome, <span id="me"></span></h2>
-      <div>
-        <strong>Users:</strong>
-        <select id="user-list"></select>
+  <body class="bg-gray-100">
+    <!-- Auth Container -->
+    <div
+      id="auth-container"
+      class="min-h-screen flex items-center justify-center"
+    >
+      <div class="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
+          Welcome to Go Chat
+        </h2>
+
+        <!-- Register Form -->
+        <div id="register-form" class="mb-6">
+          <h3 class="text-lg font-semibold mb-4 text-gray-700">Register</h3>
+          <div class="space-y-4">
+            <input
+              type="text"
+              id="reg-username"
+              placeholder="Username"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <input
+              type="email"
+              id="reg-email"
+              placeholder="Email"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <input
+              type="password"
+              id="reg-password"
+              placeholder="Password"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <button
+              onclick="register()"
+              class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+            >
+              Register
+            </button>
+          </div>
+          <p class="text-center mt-4 text-gray-600">
+            Already have an account?
+            <a
+              href="#"
+              onclick="toggleAuthForms()"
+              class="text-blue-500 hover:underline"
+              >Login</a
+            >
+          </p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="hidden">
+          <h3 class="text-lg font-semibold mb-4 text-gray-700">Login</h3>
+          <div class="space-y-4">
+            <input
+              type="text"
+              id="login-username"
+              placeholder="Username"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <input
+              type="password"
+              id="login-password"
+              placeholder="Password"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <button
+              onclick="login()"
+              class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+            >
+              Login
+            </button>
+          </div>
+          <p class="text-center mt-4 text-gray-600">
+            Don't have an account?
+            <a
+              href="#"
+              onclick="toggleAuthForms()"
+              class="text-blue-500 hover:underline"
+              >Register</a
+            >
+          </p>
+        </div>
+
+        <div id="auth-error" class="mt-4 text-red-500 text-center"></div>
       </div>
-      <div id="users"></div>
-      <div id="messages"></div>
-      <input id="msg" placeholder="Type a message..." />
-      <button onclick="sendMsg()">Send</button>
-      <button onclick="logout()">Logout</button>
     </div>
+
+    <!-- Chat Container -->
+    <div id="chat-container" class="hidden h-screen">
+      <div class="flex h-full">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white border-r">
+          <div class="p-4 border-b">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-semibold text-gray-800">Go Chat</h2>
+              <button
+                onclick="logout()"
+                class="text-gray-600 hover:text-gray-800"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600">
+              Welcome, <span id="current-user" class="font-semibold"></span>
+            </p>
+          </div>
+          <div class="p-4">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Users</h3>
+            <div id="users-list" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col">
+          <!-- Chat Header -->
+          <div class="p-4 border-b bg-white">
+            <h3 class="text-lg font-semibold text-gray-800">
+              Chat with
+              <span id="chat-with" class="text-blue-500">Select a user</span>
+            </h3>
+          </div>
+
+          <!-- Messages Area -->
+          <div
+            id="messages"
+            class="flex-1 p-4 overflow-y-auto bg-gray-50"
+          ></div>
+
+          <!-- Message Input -->
+          <div class="p-4 border-t bg-white">
+            <div class="flex space-x-4">
+              <input
+                type="text"
+                id="message-input"
+                placeholder="Type a message..."
+                class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              />
+              <button
+                onclick="sendMessage()"
+                class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       let token = "";
       let ws = null;
       let myId = null;
       let currentChatId = null;
+      let currentChatUsername = null;
+
+      function toggleAuthForms() {
+        document.getElementById("register-form").classList.toggle("hidden");
+        document.getElementById("login-form").classList.toggle("hidden");
+        document.getElementById("auth-error").textContent = "";
+      }
+
+      function register() {
+        const username = document.getElementById("reg-username").value;
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
+
+        fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.message) {
+              document.getElementById("auth-error").textContent =
+                "Registration successful! Please login.";
+              toggleAuthForms();
+            } else {
+              document.getElementById("auth-error").textContent =
+                data.error || "Registration failed";
+            }
+          })
+          .catch((err) => {
+            document.getElementById("auth-error").textContent =
+              "Error connecting to server";
+          });
+      }
 
       function login() {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+
         fetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -69,51 +265,79 @@
             if (data.token) {
               token = data.token;
               myId = data.user.id;
-              document.getElementById("me").innerText = data.user.username;
-              document.getElementById("login").style.display = "none";
-              document.getElementById("chat").style.display = "block";
+              document.getElementById("current-user").textContent =
+                data.user.username;
+              document.getElementById("auth-container").classList.add("hidden");
+              document
+                .getElementById("chat-container")
+                .classList.remove("hidden");
               loadUsers();
-              connectWS();
+              connectWS(token);
             } else {
-              document.getElementById("login-error").innerText =
+              document.getElementById("auth-error").textContent =
                 data.error || "Login failed";
             }
+          })
+          .catch((err) => {
+            document.getElementById("auth-error").textContent =
+              "Error connecting to server";
           });
       }
 
       function logout() {
+        console.log("Logging out...");
+        if (ws) {
+          console.log("Closing WebSocket connection");
+          ws.close();
+          ws = null;
+        }
         token = "";
-        ws && ws.close();
-        document.getElementById("login").style.display = "block";
-        document.getElementById("chat").style.display = "none";
+        myId = null;
+        currentChatId = null;
+        currentChatUsername = null;
+        document.getElementById("auth-container").classList.remove("hidden");
+        document.getElementById("chat-container").classList.add("hidden");
         document.getElementById("messages").innerHTML = "";
-        document.getElementById("user-list").innerHTML = "";
+        document.getElementById("users-list").innerHTML = "";
+        document.getElementById("chat-with").textContent = "Select a user";
       }
 
       function loadUsers() {
+        console.log("Loading users...");
         fetch("/users", { headers: { Authorization: "Bearer " + token } })
           .then((r) => r.json())
           .then((users) => {
-            const list = document.getElementById("user-list");
+            console.log("Received users:", users);
+            const list = document.getElementById("users-list");
             list.innerHTML = "";
             users.forEach((u) => {
               if (u.id !== myId) {
-                const opt = document.createElement("option");
-                opt.value = u.id;
-                opt.text = u.username + (u.online ? " (online)" : " (offline)");
-                list.appendChild(opt);
+                console.log("Adding user to list:", u);
+                const div = document.createElement("div");
+                div.className =
+                  "flex items-center p-2 hover:bg-gray-100 rounded-lg cursor-pointer";
+                div.setAttribute("data-user-id", u.id);
+                div.onclick = () => selectUser(u.id, u.username);
+                div.innerHTML = `
+                  <span class="online-indicator ${
+                    u.online ? "online" : "offline"
+                  }"></span>
+                  <span class="text-gray-800">${u.username}</span>
+                `;
+                list.appendChild(div);
               }
             });
-            list.onchange = () => {
-              currentChatId = list.value;
-              loadMessages();
-            };
-            if (list.options.length > 0) {
-              list.selectedIndex = 0;
-              currentChatId = list.value;
-              loadMessages();
-            }
+          })
+          .catch((err) => {
+            console.error("Error loading users:", err);
           });
+      }
+
+      function selectUser(userId, username) {
+        currentChatId = userId;
+        currentChatUsername = username;
+        document.getElementById("chat-with").textContent = username;
+        loadMessages();
       }
 
       function loadMessages() {
@@ -127,40 +351,133 @@
             box.innerHTML = "";
             msgs.reverse().forEach((m) => {
               const div = document.createElement("div");
-              div.innerText =
-                (m.sender_id === myId ? "Me" : m.sender.username) +
-                ": " +
-                m.content;
+              div.className = `message-bubble ${
+                m.sender_id === myId ? "message-sent" : "message-received"
+              }`;
+              div.textContent = m.content;
               box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
+          })
+          .catch((err) => {
+            console.error("Error loading messages:", err);
           });
       }
 
-      function connectWS() {
-        ws = new WebSocket("ws://" + location.host + "/ws");
-        ws.onopen = () => {
-          ws.send(JSON.stringify({ type: "auth", token }));
+      function connectWS(token) {
+        console.log("Connecting to WebSocket...");
+        // Close existing connection if any
+        if (ws) {
+          console.log("Closing existing WebSocket connection...");
+          ws.close();
+        }
+
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+        console.log("WebSocket URL:", wsUrl);
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = function () {
+          console.log("WebSocket connection established");
+          document.getElementById("connection-status").textContent =
+            "Connected";
+          document.getElementById("connection-status").style.color = "green";
+          // Load users immediately after connection
+          loadUsers();
         };
-        ws.onmessage = (event) => {
-          let msg = {};
+
+        ws.onmessage = function (event) {
+          console.log("Received message:", event.data);
           try {
-            msg = JSON.parse(event.data);
-          } catch {}
-          if (msg.type === "user_status") {
-            loadUsers();
-          } else if (msg.type === "message") {
-            if (msg.sender_id == currentChatId || msg.sender_id == myId) {
-              loadMessages();
+            const message = JSON.parse(event.data);
+            console.log("Parsed message:", message);
+
+            if (message.type === "user_status") {
+              console.log("User status update:", message.data);
+              const userList = document.getElementById("user-list");
+              const existingUser = userList.querySelector(
+                `[data-user-id="${message.data.user_id}"]`
+              );
+
+              if (existingUser) {
+                if (message.data.online) {
+                  existingUser.classList.add("online");
+                  existingUser.querySelector(".status-indicator").textContent =
+                    "●";
+                } else {
+                  existingUser.classList.remove("online");
+                  existingUser.querySelector(".status-indicator").textContent =
+                    "○";
+                }
+              } else if (message.data.online) {
+                // Add new user to the list
+                const userElement = document.createElement("div");
+                userElement.className = "user-item online";
+                userElement.setAttribute("data-user-id", message.data.user_id);
+                userElement.innerHTML = `
+                            <span class="status-indicator">●</span>
+                            <span class="username">${message.data.username}</span>
+                        `;
+                userElement.onclick = () =>
+                  selectUser(message.data.user_id, message.data.username);
+                userList.appendChild(userElement);
+              }
+            } else if (message.type === "message") {
+              console.log("New message received:", message);
+              const chatBox = document.getElementById("chat-box");
+              const messageElement = document.createElement("div");
+              messageElement.className = "message";
+              messageElement.innerHTML = `
+                        <div class="message-header">
+                            <span class="sender">${
+                              message.data.sender_name
+                            }</span>
+                            <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                        <div class="message-content">${message.content}</div>
+                    `;
+              chatBox.appendChild(messageElement);
+              chatBox.scrollTop = chatBox.scrollHeight;
             }
+          } catch (error) {
+            console.error("Error processing message:", error);
           }
         };
-        ws.onclose = () => {};
+
+        ws.onclose = function (event) {
+          console.log("WebSocket connection closed:", event.code, event.reason);
+          document.getElementById("connection-status").textContent =
+            "Disconnected";
+          document.getElementById("connection-status").style.color = "red";
+
+          // Attempt to reconnect after a delay
+          setTimeout(() => {
+            console.log("Attempting to reconnect...");
+            connectWS(token);
+          }, 3000);
+        };
+
+        ws.onerror = function (error) {
+          console.error("WebSocket error:", error);
+          document.getElementById("connection-status").textContent = "Error";
+          document.getElementById("connection-status").style.color = "red";
+        };
       }
 
-      function sendMsg() {
-        const content = document.getElementById("msg").value;
+      function sendMessage() {
+        const input = document.getElementById("message-input");
+        const content = input.value.trim();
         if (!content || !currentChatId) return;
+
+        // Add message to UI immediately for better UX
+        const box = document.getElementById("messages");
+        const div = document.createElement("div");
+        div.className = "message-bubble message-sent";
+        div.textContent = content;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+
         ws.send(
           JSON.stringify({
             type: "message",
@@ -168,8 +485,18 @@
             data: { receiver_id: Number(currentChatId) },
           })
         );
-        document.getElementById("msg").value = "";
+
+        input.value = "";
       }
+
+      // Handle Enter key in message input
+      document
+        .getElementById("message-input")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
+        });
     </script>
   </body>
 </html>

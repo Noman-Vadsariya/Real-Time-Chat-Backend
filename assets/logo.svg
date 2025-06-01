@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background Circle -->
+    <circle cx="100" cy="100" r="90" fill="#3B82F6" opacity="0.1"/>
+    
+    <!-- Chat Bubble -->
+    <path d="M60 70 C60 65 65 60 70 60 H130 C135 60 140 65 140 70 V110 C140 115 135 120 130 120 H100 L80 140 V120 H70 C65 120 60 115 60 110 V70" 
+          fill="#3B82F6"/>
+    
+    <!-- Message Lines -->
+    <line x1="80" y1="85" x2="120" y2="85" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    <line x1="80" y1="95" x2="120" y2="95" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    <line x1="80" y1="105" x2="100" y2="105" stroke="white" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Connection Dots -->
+    <circle cx="150" cy="50" r="8" fill="#10B981"/>
+    <circle cx="170" cy="50" r="8" fill="#10B981"/>
+    <circle cx="190" cy="50" r="8" fill="#10B981"/>
+</svg> 

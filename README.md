@@ -1,156 +1,161 @@
-# Real-Time Chat Backend
+# Go Chat - Real-time Chat Application
 
-A real-time chat backend system built with Go, featuring WebSocket support, JWT authentication, and PostgreSQL database integration.
+![Go Chat Logo](https://raw.githubusercontent.com/yourusername/go-chat/main/assets/logo.png)
 
-## Features
+A modern, real-time chat application built with Go, WebSocket, and a beautiful UI. This application provides instant messaging capabilities with features like user authentication, real-time status updates, and message persistence.
 
-- User Authentication (JWT-based)
-- Real-time messaging using WebSocket
-- Message persistence in PostgreSQL
-- Online/offline user status
-- Private messaging between users
-- RESTful API endpoints
+## 🌟 Features
 
-## Prerequisites
+- **Real-time Messaging**: Instant message delivery using WebSocket technology
+- **User Authentication**: Secure login and registration system
+- **Online Status**: Real-time user online/offline status updates
+- **Message History**: Persistent message storage and retrieval
+- **Modern UI**: Clean and responsive interface built with Tailwind CSS
+- **Cross-platform**: Works on desktop and mobile browsers
 
-- Go 1.21 or higher
-- PostgreSQL
-- Make (optional, for using Makefile commands)
+## 🚀 Quick Start
 
-## Environment Variables
+### Prerequisites
 
-Create a `.env` file in the root directory with the following variables:
+- Go 1.16 or higher
+- SQLite (default) or PostgreSQL
+- Modern web browser
 
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=chat_db
-JWT_SECRET=your-secret-key-here
-PORT=8080
-```
-
-## Installation
+### Installation
 
 1. Clone the repository:
 
-```bash
-git clone <repository-url>
-cd chat-backend
-```
+   ```bash
+   git clone https://github.com/yourusername/go-chat.git
+   cd go-chat
+   ```
 
 2. Install dependencies:
 
-```bash
-go mod download
-```
+   ```bash
+   go mod download
+   ```
 
-3. Create the database:
+3. Configure environment variables:
 
-```sql
-CREATE DATABASE chat_db;
-```
+   ```bash
+   # Create a .env file
+   DB_TYPE=sqlite
+   PORT=3000
+   JWT_SECRET=your-super-secret-key-123
+   ```
 
 4. Run the application:
 
+   ```bash
+   go run .
+   ```
+
+5. Open your browser and navigate to:
+   ```
+   http://localhost:3000/client/
+   ```
+
+## 📸 Screenshots
+
+### Login Screen
+
+![Login Screen](https://raw.githubusercontent.com/yourusername/go-chat/main/assets/login.png)
+
+### Chat Interface
+
+![Chat Interface](https://raw.githubusercontent.com/yourusername/go-chat/main/assets/chat.png)
+
+### User List
+
+![User List](https://raw.githubusercontent.com/yourusername/go-chat/main/assets/users.png)
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable     | Description                     | Default |
+| ------------ | ------------------------------- | ------- |
+| `DB_TYPE`    | Database type (sqlite/postgres) | sqlite  |
+| `PORT`       | Server port                     | 3000    |
+| `JWT_SECRET` | Secret key for JWT tokens       | -       |
+
+### Database Configuration
+
+The application supports both SQLite and PostgreSQL:
+
 ```bash
-go run .
+# For SQLite (default)
+DB_TYPE=sqlite
+
+# For PostgreSQL
+DB_TYPE=postgres
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=chat_db
 ```
 
-## API Endpoints
+## 🛠️ API Endpoints
 
 ### Authentication
 
 - `POST /register` - Register a new user
+- `POST /login` - Login and get JWT token
 
-  ```json
-  {
-    "username": "user1",
-    "password": "password123",
-    "email": "user1@example.com"
-  }
-  ```
+### Users
 
-- `POST /login` - Login user
-  ```json
-  {
-    "username": "user1",
-    "password": "password123"
-  }
-  ```
+- `GET /users` - Get list of users (requires authentication)
+- `GET /users/:id` - Get user details (requires authentication)
 
-### WebSocket
+### Messages
 
-- `GET /ws` - WebSocket connection endpoint
-  - Requires Authorization header with JWT token
-  - Messages are sent and received in JSON format
+- `GET /messages/:user_id` - Get chat history with a user (requires authentication)
+- WebSocket `/ws` - Real-time messaging endpoint
 
-### REST API
+## 🔒 Security
 
-- `GET /messages/:userId` - Get chat history with a specific user
+- JWT-based authentication
+- Password hashing using bcrypt
+- WebSocket connection validation
+- CORS protection
+- Input sanitization
 
-  - Requires Authorization header with JWT token
-  - Returns last 50 messages
+## 🎨 UI Features
 
-- `GET /users` - Get list of all users with online status
-  - Requires Authorization header with JWT token
+- Responsive design
+- Real-time status indicators
+- Message bubbles with timestamps
+- User online/offline status
+- Clean and modern interface
+- Dark mode support (coming soon)
 
-## WebSocket Message Format
+## 🤝 Contributing
 
-### Sending a Message
-
-```json
-{
-  "type": "message",
-  "content": "Hello!",
-  "data": {
-    "receiver_id": 2
-  }
-}
-```
-
-### User Status Update
-
-```json
-{
-  "type": "user_status",
-  "data": {
-    "user_id": 1,
-    "online": true
-  }
-}
-```
-
-## Security
-
-- Passwords are hashed using bcrypt
-- JWT tokens are used for authentication
-- WebSocket connections are protected with JWT authentication
-- CORS is enabled for development (should be configured for production)
-
-## Error Handling
-
-The API returns appropriate HTTP status codes and error messages in JSON format:
-
-```json
-{
-  "error": "Error message description"
-}
-```
-
-## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Swagger API Documentation
+## 📝 License
 
-After starting the server, visit [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) to view and interact with the API documentation.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Web Client
+## 🙏 Acknowledgments
 
-A simple web client is available at [http://localhost:8080/client](http://localhost:8080/client) for testing chat functionality.
+- [Gin Web Framework](https://github.com/gin-gonic/gin)
+- [Gorilla WebSocket](https://github.com/gorilla/websocket)
+- [Tailwind CSS](https://tailwindcss.com)
+- [GORM](https://gorm.io)
+
+## 📞 Support
+
+For support, email support@gochat.com or open an issue in the GitHub repository.
+
+---
+
+Made with ❤️ by [Your Name]
